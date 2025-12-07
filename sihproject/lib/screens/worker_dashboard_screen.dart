@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'add_route_screen.dart';
+import 'route_qr_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 class WorkerDashboardScreen extends StatefulWidget {
@@ -10,139 +15,263 @@ class WorkerDashboardScreen extends StatefulWidget {
 class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   int currentIndex = 0;
 
+  String? _qrDataUrl;
+  String? _busReg;
+  bool _loadingQR = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedQR();
+  }
+
+  Future<void> _loadSavedQR() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _qrDataUrl = prefs.getString('last_route_qr');
+      _busReg = prefs.getString('last_route_bus');
+      _loadingQR = false;
+    });
+  }
+
+  Future<void> _markDeparted(String stopName, String time) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not logged in')),
+        );
+        return;
+      }
+
+      final body = {
+        'busRegistration': _busReg ?? 'TN7894AB',
+        'route': 'Dharmapuri → Coimbatore',
+        'destination': 'Coimbatore',
+        'latitude': 0,
+        'longitude': 0,
+        'crowding': 'Medium',
+      };
+      final res = await http.post(
+        Uri.parse('http://10.80.33.248:3000/api/driver/update_location'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      final data = jsonDecode(res.body);
+      if (res.statusCode == 200 && data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Updated for $stopName at $time')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data['message'] ?? 'Update failed')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF3F8),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80), // space above bottom bar
-          child: Column(
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 4),
-                  ],
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Logo
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF3E60FF), Color(0xFF2EC8FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3E60FF), Color(0xFF2EC8FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child: const Center(
-                        child: Text(
-                          'L',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'L',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // Title + subtitle
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Live Bus Tracking',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1F2937),
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Conductor: Rokesh • 10:28:50 AM',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Buttons row (wrapped so it can shrink)
-                    Wrap(
-                      spacing: 6,
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _headerButton(
-                          label: '+ Add Route',
-                          colors: const [Color(0xFF3E60FF), Color(0xFF2EC8FF)],
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => AddRouteScreen()),
-                            );
-                          },
+                        Text(
+                          'Live Bus Tracking',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F2937),
+                          ),
                         ),
-                        _headerButton(
-                          label: 'QR Code',
-                          colors: const [Color(0xFF00C567), Color(0xFF00A255)],
-                          onTap: () {
-                            // TODO: show QR dialog
-                          },
-                        ),
-                        _headerButton(
-                          label: 'Logout',
-                          colors: const [Color(0xFFEF4444), Color(0xFFF97316)],
-                          onTap: () => Navigator.popUntil(
-                              context, (route) => route.isFirst),
+                        SizedBox(height: 4),
+                        Text(
+                          'Conductor Dashboard',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF6B7280),
+                          ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      _headerButton(
+                        label: '+ Add Route',
+                        colors: const [Color(0xFF3E60FF), Color(0xFF2EC8FF)],
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => AddRouteScreen()),
+                          );
+                          await _loadSavedQR(); // refresh after coming back
+                        },
+                      ),
+                      _headerButton(
+                        label: 'QR Code',
+                        colors: const [Color(0xFF00C567), Color(0xFF00A255)],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => RouteQRScreen()),
+                          );
+                        },
+                      ),
+                      _headerButton(
+                        label: 'Logout',
+                        colors: const [Color(0xFFEF4444), Color(0xFFF97316)],
+                        onTap: () =>
+                            Navigator.popUntil(context, (r) => r.isFirst),
+                      ),
+                    ],
+                  ),
+                ],
               ),
+            ),
 
-              const SizedBox(height: 16),
-
-              // Content area
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    _buildRouteCard(),
-                    const SizedBox(height: 16),
-                    _buildStopCard('Salem', '08:00'),
-                    const SizedBox(height: 12),
-                    _buildStopCard('Erode', '10:30'),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            Expanded(
+              child: _loadingQR
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: _qrDataUrl == null
+                          ? _buildNoRouteView()
+                          : _buildSavedRouteView(),
+                    ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
         onTap: (index) => setState(() => currentIndex = index),
       ),
+    );
+  }
+
+  Widget _buildNoRouteView() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.qr_code_2, size: 80, color: Colors.grey),
+          SizedBox(height: 12),
+          Text(
+            'No route created yet',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 6),
+          Text(
+            'Tap "+ Add Route" to create your first route\nand generate a QR code.',
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSavedRouteView() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 20,
+              ),
+            ],
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.memory(
+                base64Decode(_qrDataUrl!.split(',').last),
+                width: 220,
+                height: 220,
+              ),
+              const SizedBox(height: 12),
+              if (_busReg != null)
+                Text(
+                  'Bus: $_busReg',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              const SizedBox(height: 6),
+              const Text(
+                'Show this QR inside the bus.\nPassengers can scan to track live.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        // optional: quick "Mark Departed" buttons using same API
+        _buildStopCard('Current Stop', 'Now'),
+      ],
     );
   }
 
@@ -172,81 +301,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildRouteCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF8FAFC), Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  '7894',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF3E60FF),
-                  ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'Dharmapuri (08:00) → Coimbatore (14:00)',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF3E60FF), Color(0xFF2EC8FF)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Total Stops',
-                    style: TextStyle(color: Colors.white, fontSize: 12)),
-                SizedBox(height: 4),
-                Text(
-                  '2',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -282,7 +336,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Scheduled: $time',
+                  'Time: $time',
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF6B7280),
@@ -295,7 +349,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             height: 40,
             child: ElevatedButton(
               onPressed: () {
-                // TODO: call update_location API
+                _markDeparted(stopName, time);
               },
               style: ElevatedButton.styleFrom(
                 padding:
