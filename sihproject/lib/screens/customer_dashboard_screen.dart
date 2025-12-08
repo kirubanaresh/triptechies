@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
+<<<<<<< Updated upstream
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+=======
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+>>>>>>> Stashed changes
 import '../widgets/bottom_nav_bar.dart';
+import '../services/socket_service.dart';
+import '../services/weather_service.dart';
+import '../widgets/weather_card.dart';
 
 class CustomerDashboardScreen extends StatefulWidget {
   @override
@@ -11,6 +21,13 @@ class CustomerDashboardScreen extends StatefulWidget {
 
 class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
   int currentIndex = 0;
+  final SocketService _socketService = SocketService();
+  final WeatherService _weatherService = WeatherService();
+  final FlutterTts flutterTts = FlutterTts();
+
+  Map<String, dynamic>? _weather;
+  Map<String, dynamic>? _busUpdate;
+  bool _isSosLoading = false;
 
   final _fromController = TextEditingController();
   final _toController = TextEditingController();
@@ -52,6 +69,93 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _initSocket();
+    _fetchWeather();
+    _initTts();
+  }
+
+  void _initTts() async {
+    await flutterTts.setLanguage("en-US");
+    await flutterTts.setSpeechRate(0.5);
+  }
+
+  void _initSocket() {
+    _socketService.initSocket();
+    _socketService.socket.on('bus_update', (data) {
+      if (mounted) {
+        setState(() {
+          _busUpdate = data;
+        });
+        _speakUpdate(data);
+      }
+    });
+  }
+
+  void _speakUpdate(dynamic data) async {
+    String text = "Bus ${data['busRegistration']} is now at known location";
+    await flutterTts.speak(text);
+  }
+
+  void _fetchWeather() async {
+    final weather = await _weatherService.fetchWeather('Chennai');
+    if (mounted) {
+      setState(() {
+        _weather = weather;
+      });
+    }
+  }
+
+  Future<void> _handleSos() async {
+    setState(() => _isSosLoading = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location permissions are denied')));
+           return;
+        }
+      }
+
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      
+      // Replace with your actual backend URL
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3000/api/sos'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'busRegistration': _busUpdate?['busRegistration'] ?? 'UNKNOWN',
+          'location': {
+            'latitude': position.latitude,
+            'longitude': position.longitude
+          },
+          'userId': '12345'
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('SOS SENT! Emergency alert broadcasted.'), backgroundColor: Colors.red));
+      } else {
+        throw Exception('Failed to send SOS');
+      }
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send SOS: $e')));
+    } finally {
+      if (mounted) setState(() => _isSosLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _socketService.dispose();
+    flutterTts.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE9ECF2),
@@ -71,6 +175,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
         child: Column(
           children: [
             // Header
+<<<<<<< Updated upstream
             Container(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
               decoration: const BoxDecoration(
@@ -117,11 +222,46 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             ),
 
             // Cards + results
+=======
+            _buildHeader(),
+            
+            // Cards
+>>>>>>> Stashed changes
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
+<<<<<<< Updated upstream
+=======
+                    // SOS Button
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _isSosLoading ? null : _handleSos,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: _isSosLoading 
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text('🚨 SOS EMERGENCY 🚨', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ),
+                      ),
+                    ),
+
+                    // Weather Card
+                    if (_weather != null) WeatherCard(weather: _weather),
+
+                    // Live Update Banner
+                    if (_busUpdate != null) _buildLiveUpdateBanner(),
+                    SizedBox(height: 20),
+
+                    // Card 1: From/To Search
+>>>>>>> Stashed changes
                     _buildSearchCard(),
                     const SizedBox(height: 20),
                     _buildBusSearchCard(),
@@ -203,6 +343,78 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
         onTap: (index) => setState(() => currentIndex = index),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Color(0xFF3B82F6),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(Icons.menu, color: Colors.white, size: 16),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Where is My Bus',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                Text(
+                  'Live tracking for your journey',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveUpdateBanner() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        border: Border.all(color: Colors.red.shade200),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.directions_bus, color: Colors.red),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Live Update: ${_busUpdate!['busRegistration']}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                Text('Crowding: ${_busUpdate!['crowding'] ?? 'Unknown'}%', style: TextStyle(color: Colors.red.shade700)),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }

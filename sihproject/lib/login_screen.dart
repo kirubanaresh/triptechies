@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/language_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -63,6 +65,25 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
+            DropdownButton<String>(
+              value: 'en', // In real app, bind to LanguageProvider
+              items: [
+                DropdownMenuItem(value: 'en', child: Text('English')),
+                DropdownMenuItem(value: 'ta', child: Text('Tamil')),
+                DropdownMenuItem(value: 'hi', child: Text('Hindi')),
+                DropdownMenuItem(value: 'fr', child: Text('French')),
+                DropdownMenuItem(value: 'de', child: Text('German')),
+              ],
+              onChanged: (val) {
+                // Update basic state or Provider
+                // For now just visual in Login, assuming Global Provider handles actual selection inside app
+                // Ideally this updates the Provider immediately
+                if (val != null) {
+                   Provider.of<LanguageProvider>(context, listen: false).changeLanguage(Locale(val));
+                }
+              },
+            ),
+            SizedBox(height: 12),
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(labelText: 'Username'),

@@ -1,8 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+<<<<<<< Updated upstream
 import 'package:shared_preferences/shared_preferences.dart';
 
+=======
+import 'dart:convert';
+>>>>>>> Stashed changes
 import 'add_route_screen.dart';
 import 'route_qr_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -14,6 +18,38 @@ class WorkerDashboardScreen extends StatefulWidget {
 
 class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   int currentIndex = 0;
+  bool _isUpdating = false;
+
+  Future<void> _updateLocation() async {
+    setState(() => _isUpdating = true);
+    try {
+      // Mock location update for demo
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3000/api/driver/update_location'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'busRegistration': 'TN-38-N-1234',
+          'route': '7894',
+          'destination': 'Coimbatore',
+          'latitude': 12.9716, // Mock lat
+          'longitude': 77.5946, // Mock lng
+          'crowding': 75
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Status Updated Successfully'), backgroundColor: Colors.green));
+      } else {
+        // Fallback for demo if backend not running
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Simulated Update Status Sent (API Error)'), backgroundColor: Colors.orange));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Simulated Update Status Sent (Network Error)'), backgroundColor: Colors.orange));
+    } finally {
+      setState(() => _isUpdating = false);
+    }
+  }
+
 
   String? _qrDataUrl;
   String? _busReg;
@@ -83,6 +119,12 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF3F8),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isUpdating ? null : _updateLocation,
+        backgroundColor: Color(0xFF3E60FF),
+        icon: _isUpdating ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : Icon(Icons.send),
+        label: Text("Update Live Status"),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -118,6 +160,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                         ),
                       ),
                     ),
+<<<<<<< Updated upstream
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -143,8 +186,47 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                             fontSize: 13,
                             color: Color(0xFF6B7280),
                           ),
+=======
+                    const SizedBox(width: 12),
+                    // Title + subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Live Bus Tracking',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Conductor: Rokesh • 10:28:50 AM',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Buttons row (wrapped so it can shrink)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                         child: _headerButton(
+                          label: 'Logout',
+                          colors: const [Color(0xFFEF4444), Color(0xFFF97316)],
+                          onTap: () => Navigator.popUntil(
+                              context, (route) => route.isFirst),
+>>>>>>> Stashed changes
                         ),
-                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -348,9 +430,13 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           SizedBox(
             height: 40,
             child: ElevatedButton(
+<<<<<<< Updated upstream
               onPressed: () {
                 _markDeparted(stopName, time);
               },
+=======
+              onPressed: _updateLocation,
+>>>>>>> Stashed changes
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 0),

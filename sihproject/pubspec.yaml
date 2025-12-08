@@ -31,19 +31,28 @@ dependencies:
   flutter:
     sdk: flutter
   google_maps_flutter: ^2.5.0      # latest or compatible Dart 3 version
-  location: ^8.0.0                 # update to latest
-  http: ^1.1.0                  # latest at time of writing
-  connectivity_plus: ^7.0.0        # update to latest
-  jwt_decoder: ^2.0.1              # check pub.dev for Dart 3 support
-  web_socket_channel: ^3.0.0       # update to latest
-  mobile_scanner: ^5.1.1           # update to latest
-  flutter_secure_storage: ^9.0.0   # update to latest, check pub.dev
+  location: ^8.0.0
+  http: ^1.1.0
+  connectivity_plus: ^7.0.0
+  jwt_decoder: ^2.0.1
+  web_socket_channel: ^3.0.0
+  mobile_scanner: ^5.1.1
+  flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.2.2
   camera: ^0.10.5+9
+  
+  # New dependencies for SIH features
+  socket_io_client: ^2.0.3+1
+  flutter_tts: ^3.8.3
+  geolocator: ^10.1.0
+  provider: ^6.0.5
+  permission_handler: ^11.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  speech_to_text: ^7.3.0
+  dash_chat_2: ^0.0.21
 
 dev_dependencies:
   flutter_test:

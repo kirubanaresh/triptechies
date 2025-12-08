@@ -1,0 +1,15 @@
+node_modules/
+build/
+.dart_tool/
+.idea/
+.vscode/
+.env
+*.log
+.DS_Store
+android/.gradle
+ios/.symlinks
+flutter_export.pdf
+flutter_coverage/
+coverage/
+gw
+gw.bat

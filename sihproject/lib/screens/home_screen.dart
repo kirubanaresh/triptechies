@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'qr_scanner_screen.dart';
+import 'chat_screen.dart';
 import 'login_modal.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -127,6 +128,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
+        },
+        child: Icon(Icons.chat),
+        backgroundColor: Color(0xFF3B82F6),
       ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
