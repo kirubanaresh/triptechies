@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'qr_scanner_screen.dart';
 import 'chat_screen.dart';
@@ -63,6 +65,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  // Language Selector in Header
+                  Consumer<LanguageProvider>(
+                    builder: (context, lang, child) {
+                      return DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: lang.appLocale.languageCode,
+                          icon: Icon(Icons.language, color: Color(0xFF3B82F6), size: 20),
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                          alignment: Alignment.centerRight,
+                          items: [
+                            DropdownMenuItem(value: 'en', child: Text('En')),
+                            DropdownMenuItem(value: 'ta', child: Text('Ta')),
+                            DropdownMenuItem(value: 'kn', child: Text('Kn')),
+                            DropdownMenuItem(value: 'hi', child: Text('Hi')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) lang.changeLanguage(Locale(val));
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -129,13 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
-        },
-        child: Icon(Icons.chat),
-        backgroundColor: Color(0xFF3B82F6),
-      ),
+
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
         onTap: (index) {

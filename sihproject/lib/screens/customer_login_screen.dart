@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
+import '../utils/app_localizations.dart';
 import 'customer_register_screen.dart';
 import 'customer_dashboard_screen.dart';
 
@@ -32,6 +35,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch language provider for immediate updates
+    final langCode = Provider.of<LanguageProvider>(context).appLocale.languageCode;
+
     return Scaffold(
       backgroundColor: Color(0xFFE9ECF2),
       body: SafeArea(
@@ -45,7 +51,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 Icon(Icons.person, size: 80, color: Color(0xFF3E60FF)),
                 SizedBox(height: 24),
                 Text(
-                  'Customer Login',
+                  AppLocalizations.get(langCode, 'customer_login'),
                   style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -53,14 +59,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Sign in to track your buses',
+                  AppLocalizations.get(langCode, 'sign_in_subtitle'),
                   style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
                 ),
                 SizedBox(height: 48),
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
-                    labelText: 'Phone or Email',
+                    labelText: AppLocalizations.get(langCode, 'username'),
                     prefixIcon: Icon(Icons.person_outline),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -77,7 +83,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: AppLocalizations.get(langCode, 'password'),
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -106,7 +112,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     child: _isLoading
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            'Login',
+                            AppLocalizations.get(langCode, 'login'),
                             style: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w600),
                           ),
@@ -120,7 +126,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         builder: (_) => CustomerRegisterScreen()),
                   ),
                   child: Text(
-                    "Don't have an account? Register",
+                    AppLocalizations.get(langCode, 'register_prompt'),
                     style: TextStyle(
                         color: Colors.blueAccent,
                         fontSize: 14,

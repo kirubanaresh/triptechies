@@ -26,6 +26,9 @@ class LanguageProvider with ChangeNotifier {
     if (type == const Locale('ta')) {
       _appLocale = const Locale('ta');
       await prefs.setString('language_code', 'ta');
+    } else if (type == const Locale('kn')) {
+      _appLocale = const Locale('kn');
+      await prefs.setString('language_code', 'kn');
     } else if (type == const Locale('hi')) {
       _appLocale = const Locale('hi');
       await prefs.setString('language_code', 'hi');

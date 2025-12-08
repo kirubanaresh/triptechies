@@ -70,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
               items: [
                 DropdownMenuItem(value: 'en', child: Text('English')),
                 DropdownMenuItem(value: 'ta', child: Text('Tamil')),
+                DropdownMenuItem(value: 'kn', child: Text('Kannada')),
                 DropdownMenuItem(value: 'hi', child: Text('Hindi')),
                 DropdownMenuItem(value: 'fr', child: Text('French')),
                 DropdownMenuItem(value: 'de', child: Text('German')),

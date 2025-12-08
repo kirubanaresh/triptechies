@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
+import '../utils/app_localizations.dart';
 import 'customer_login_screen.dart';
 import 'worker_login_screen.dart';
 
@@ -14,6 +17,9 @@ void showLoginModal(BuildContext context) {
 class LoginModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Watch simple language provider for rebuilds
+    final langCode = Provider.of<LanguageProvider>(context).appLocale.languageCode;
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
@@ -32,14 +38,44 @@ class LoginModal extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'Choose Login',
+              AppLocalizations.get(langCode, 'choose_login'),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1F2937),
               ),
             ),
-            SizedBox(height: 32),
+            SizedBox(height: 16),
+            // Language Dropdown
+            Consumer<LanguageProvider>(
+              builder: (context, languageProvider, child) {
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: languageProvider.appLocale.languageCode,
+                      icon: Icon(Icons.language, color: Color(0xFF3E60FF)),
+                      items: [
+                        DropdownMenuItem(value: 'en', child: Text('English')),
+                        DropdownMenuItem(value: 'ta', child: Text('Tamil (தமிழ்)')),
+                        DropdownMenuItem(value: 'kn', child: Text('Kannada (icon)')),
+                        DropdownMenuItem(value: 'hi', child: Text('Hindi (हिंदी)')),
+                      ],
+                      onChanged: (String? val) {
+                        if (val != null) {
+                          languageProvider.changeLanguage(Locale(val));
+                        }
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            SizedBox(height: 24),
             // Customer Login
             ElevatedButton.icon(
               onPressed: () {
@@ -51,7 +87,7 @@ class LoginModal extends StatelessWidget {
               },
               icon: Icon(Icons.person, size: 24),
               label: Text(
-                'Customer Login',
+                AppLocalizations.get(langCode, 'customer_login'),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
@@ -76,7 +112,7 @@ class LoginModal extends StatelessWidget {
               },
               icon: Icon(Icons.directions_bus, size: 24),
               label: Text(
-                'Worker Login',
+                AppLocalizations.get(langCode, 'worker_login'),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               style: ElevatedButton.styleFrom(
@@ -92,7 +128,7 @@ class LoginModal extends StatelessWidget {
             Spacer(),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: TextStyle(color: Color(0xFF6B7280))),
+              child: Text(AppLocalizations.get(langCode, 'cancel'), style: TextStyle(color: Color(0xFF6B7280))),
             ),
           ],
         ),

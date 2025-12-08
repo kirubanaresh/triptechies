@@ -1,12 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-<<<<<<< Updated upstream
 import 'package:shared_preferences/shared_preferences.dart';
-
-=======
-import 'dart:convert';
->>>>>>> Stashed changes
 import 'add_route_screen.dart';
 import 'route_qr_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -24,6 +19,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     setState(() => _isUpdating = true);
     try {
       // Mock location update for demo
+      // In production use Config.baseUrl or user's token
       final response = await http.post(
         Uri.parse('http://10.0.2.2:3000/api/driver/update_location'),
         headers: {'Content-Type': 'application/json'},
@@ -40,7 +36,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Status Updated Successfully'), backgroundColor: Colors.green));
       } else {
-        // Fallback for demo if backend not running
          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Simulated Update Status Sent (API Error)'), backgroundColor: Colors.orange));
       }
     } catch (e) {
@@ -68,51 +63,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       _busReg = prefs.getString('last_route_bus');
       _loadingQR = false;
     });
-  }
-
-  Future<void> _markDeparted(String stopName, String time) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Not logged in')),
-        );
-        return;
-      }
-
-      final body = {
-        'busRegistration': _busReg ?? 'TN7894AB',
-        'route': 'Dharmapuri → Coimbatore',
-        'destination': 'Coimbatore',
-        'latitude': 0,
-        'longitude': 0,
-        'crowding': 'Medium',
-      };
-      final res = await http.post(
-        Uri.parse('http://10.80.33.248:3000/api/driver/update_location'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(body),
-      );
-
-      final data = jsonDecode(res.body);
-      if (res.statusCode == 200 && data['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Updated for $stopName at $time')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Update failed')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
   }
 
   @override
@@ -160,13 +110,13 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                         ),
                       ),
                     ),
-<<<<<<< Updated upstream
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  // Title + subtitle
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: const [
                         Text(
                           'Live Bus Tracking',
                           maxLines: 1,
@@ -179,54 +129,15 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'Conductor Dashboard',
+                          'Conductor: Rokesh • 10:28:50 AM',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 13,
                             color: Color(0xFF6B7280),
                           ),
-=======
-                    const SizedBox(width: 12),
-                    // Title + subtitle
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Live Bus Tracking',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1F2937),
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Conductor: Rokesh • 10:28:50 AM',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Buttons row (wrapped so it can shrink)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                         child: _headerButton(
-                          label: 'Logout',
-                          colors: const [Color(0xFFEF4444), Color(0xFFF97316)],
-                          onTap: () => Navigator.popUntil(
-                              context, (route) => route.isFirst),
->>>>>>> Stashed changes
                         ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -430,13 +341,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           SizedBox(
             height: 40,
             child: ElevatedButton(
-<<<<<<< Updated upstream
-              onPressed: () {
-                _markDeparted(stopName, time);
-              },
-=======
               onPressed: _updateLocation,
->>>>>>> Stashed changes
               style: ElevatedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
@@ -452,6 +357,8 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
                     colors: [Color(0xFF3E60FF), Color(0xFF2EC8FF)],
                   ),
                   borderRadius: BorderRadius.circular(12),
+                  // padding:
+                  //     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 ),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

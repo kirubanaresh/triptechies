@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-<<<<<<< Updated upstream
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-=======
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
->>>>>>> Stashed changes
 import '../widgets/bottom_nav_bar.dart';
 import '../services/socket_service.dart';
 import '../services/weather_service.dart';
 import '../widgets/weather_card.dart';
+import 'chat_screen.dart';
 
 class CustomerDashboardScreen extends StatefulWidget {
   @override
@@ -44,6 +40,9 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
       return;
     }
 
+    // Use 10.0.2.2 for emulator or specific IP if Config exists. 
+    // Hardcoding for now to match verified working state or use Config if imported.
+    // Since Config isn't imported here, I'll stick to the likely working URL or add Config.
     final uri = Uri.parse(
       'http://10.0.2.2:3000/api/routes/search?from=$from&to=$to',
     );
@@ -121,7 +120,6 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
 
       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       
-      // Replace with your actual backend URL
       final response = await http.post(
         Uri.parse('http://10.0.2.2:3000/api/sos'),
         headers: {'Content-Type': 'application/json'},
@@ -174,66 +172,13 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
         ),
         child: Column(
           children: [
-            // Header
-<<<<<<< Updated upstream
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.menu,
-                        color: Colors.white, size: 16),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Where is My Bus',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                        Text(
-                          'Live tracking for your journey',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Cards + results
-=======
             _buildHeader(),
             
-            // Cards
->>>>>>> Stashed changes
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-<<<<<<< Updated upstream
-=======
                     // SOS Button
                     Padding(
                       padding: const EdgeInsets.only(bottom: 20),
@@ -260,8 +205,6 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                     if (_busUpdate != null) _buildLiveUpdateBanner(),
                     SizedBox(height: 20),
 
-                    // Card 1: From/To Search
->>>>>>> Stashed changes
                     _buildSearchCard(),
                     const SizedBox(height: 20),
                     _buildBusSearchCard(),
@@ -270,7 +213,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                     const SizedBox(height: 20),
 
                     // Search results from backend
-                    if (_buses.isNotEmpty)
+                     if (_buses.isNotEmpty)
                       ..._buses.map((bus) {
                         final reg = bus['bus_registration'] ?? '';
                         final from = bus['from_location'] ?? '';
@@ -339,6 +282,13 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen())); // ChatScreen is imported or will be
+        },
+        child: Icon(Icons.chat),
+        backgroundColor: Color(0xFF3B82F6),
       ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
